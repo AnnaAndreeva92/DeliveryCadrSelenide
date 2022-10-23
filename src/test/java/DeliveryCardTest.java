@@ -1,5 +1,6 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.openqa.selenium.Keys;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -12,60 +13,58 @@ import static com.codeborne.selenide.Selenide.*;
 
 
 public class DeliveryCardTest {
+    LocalDate today = LocalDate.now();
+    LocalDate newDate = today.plusDays(3);
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+
+
     @BeforeEach
     public void openForm() {
         open("http://localhost:9999/");
+        $("[data-test-id='date'] input").sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.BACK_SPACE);
     }
 
     @Test
     public void shouldFillFormValidData() {
         $$x("//input[@placeholder='Город']").filter(visible).first().val("Москва");
-        $x("//input[@type='tel']").doubleClick().sendKeys("DELETE");
-        String meetingDate = LocalDate.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
-        $x("//input[@placeholder='Дата встречи']").val(meetingDate);
+        $("[data-test-id=date] input").sendKeys(formatter.format(newDate));
         $("[data-test-id='name'] input").val("Андреева Анна");
         $("[data-test-id='phone'] input").val("+79409999806");
         $("[data-test-id ='agreement']").click();
         $x("//*[contains(text(),'Забронировать')]").click();
         $("[data-test-id ='notification']").shouldBe(visible, Duration.ofSeconds(15));
-        $("[data-test-id=notification] .notification__content").should(exactText("Встреча успешно забронирована на " + meetingDate));
+        $("[data-test-id=notification] .notification__content").should(exactText("Встреча успешно забронирована на " + newDate.format(formatter)));
 
     }
 
     @Test
     public void shouldEnteringLastNameWithHyphen() {
         $$x("//input[@placeholder='Город']").filter(visible).first().val("Москва");
-        $x("//input[@type='tel']").doubleClick().sendKeys("DELETE");
-        String meetingDate = LocalDate.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
-        $x("//input[@placeholder='Дата встречи']").val(meetingDate);
+        $("[data-test-id=date] input").sendKeys(formatter.format(newDate));
         $("[data-test-id='name'] input").val("Андреева-Хашиг Анна");
         $("[data-test-id='phone'] input").val("+79409999806");
         $("[data-test-id='agreement']").click();
         $x("//*[contains(text(),'Забронировать')]").click();
         $("[data-test-id='notification']").shouldBe(visible, Duration.ofSeconds(15));
-        $("[data-test-id=notification] .notification__content").should(exactText("Встреча успешно забронирована на " + meetingDate));
+        $("[data-test-id=notification] .notification__content").should(exactText("Встреча успешно забронирована на " + newDate.format(formatter)));
     }
 
     @Test
     public void shouldNameMustBeEnteredWithHyphen() {
         $$x("//input[@placeholder='Город']").filter(visible).first().val("Москва");
-        $x("//input[@type='tel']").doubleClick().sendKeys("DELETE");
-        String meetingDate = LocalDate.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
-        $x("//input[@placeholder='Дата встречи']").val(meetingDate);
+        $("[data-test-id=date] input").sendKeys(formatter.format(newDate));
         $("[data-test-id='name'] input").val("Андреева Анна-Стефания");
         $("[data-test-id='phone'] input").val("+79409999806");
         $("[data-test-id='agreement']").click();
         $x("//*[contains(text(),'Забронировать')]").click();
         $("[data-test-id='notification']").shouldBe(visible, Duration.ofSeconds(15));
-        $("[data-test-id=notification] .notification__content").should(exactText("Встреча успешно забронирована на " + meetingDate));
+        $("[data-test-id=notification] .notification__content").should(exactText("Встреча успешно забронирована на " + newDate.format(formatter)));
     }
 
     @Test
     public void shouldEnteringTheCityInLatin() {
         $$x("//input[@placeholder='Город']").filter(visible).first().val(" Moscow");
-        $x("//input[@type='tel']").doubleClick().sendKeys("DELETE");
-        String meetingDate = LocalDate.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
-        $x("//input[@placeholder='Дата встречи']").val(meetingDate);
+        $("[data-test-id=date] input").sendKeys(formatter.format(newDate));
         $("[data-test-id='name'] input").val("Андреева Анна");
         $("[data-test-id='phone'] input").val("+79409999806");
         $("[data-test-id='agreement']").click();
@@ -76,9 +75,7 @@ public class DeliveryCardTest {
     @Test
     public void shouldEnteringTheLastNameAndFirstNameInLatin() {
         $$x("//input[@placeholder='Город']").filter(visible).first().val("Москва");
-        $x("//input[@type='tel']").doubleClick().sendKeys("DELETE");
-        String meetingDate = LocalDate.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
-        $x("//input[@placeholder='Дата встречи']").val(meetingDate);
+        $("[data-test-id=date] input").sendKeys(formatter.format(newDate));
         $("[data-test-id='name'] input").val("Andreeva Anna");
         $("[data-test-id='phone'] input").val("+79409999806");
         $("[data-test-id='agreement']").click();
@@ -87,11 +84,9 @@ public class DeliveryCardTest {
     }
 
     @Test
-    public void shouldEnteringDateEarlierThanThreeDaysFromTheCurrentDate() {
+    public void shouldLessThanThreeFromTheCurrentDate() {
         $x("//input[@placeholder='Город']").val("Москва");
-        $x("//input[@type='tel']").doubleClick().sendKeys("DELETE");
-        String meetingDate = LocalDate.now().plusDays(1).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
-        $x("//input[@placeholder='Дата встречи']").val(meetingDate);
+        $("[data-test-id='date'] input").setValue("20.10.2022");
         $("[data-test-id='name'] input").val("Андреева Анна");
         $("[data-test-id='phone'] input").val("+79409999806");
         $("[data-test-id='agreement']").click();
@@ -102,9 +97,7 @@ public class DeliveryCardTest {
     @Test
     public void shouldEnteringAnInvalidPhoneNumber() {
         $x("//input[@placeholder='Город']").val("Москва");
-        $x("//input[@type='tel']").doubleClick().sendKeys("DELETE");
-        String meetingDate = LocalDate.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
-        $x("//input[@placeholder='Дата встречи']").val(meetingDate);
+        $("[data-test-id=date] input").sendKeys(formatter.format(newDate));
         $("[data-test-id='name'] input").val("Андреева Анна");
         $("[data-test-id='phone'] input").val("79409999806");
         $("[data-test-id='agreement']").click();
@@ -115,9 +108,7 @@ public class DeliveryCardTest {
     @Test
     public void shouldCheckboxValidation() {
         $$x("//input[@placeholder='Город']").filter(visible).first().val("Москва");
-        $x("//input[@type='tel']").doubleClick().sendKeys("DELETE");
-        String meetingDate = LocalDate.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
-        $x("//input[@placeholder= 'Дата встречи']").val(meetingDate);
+        $("[data-test-id=date] input").sendKeys(formatter.format(newDate));
         $("[data-test-id='name'] input").val("Андреева Анна");
         $("[data-test-id='phone'] input").val("+79409999806");
         $x("//*[contains(text(),'Забронировать')]").click();
@@ -127,9 +118,7 @@ public class DeliveryCardTest {
     @Test
     public void shouldFirstAndLastNameFieldsAreEmpty() {
         $$x("//input[@placeholder='Город']").filter(visible).first().val("Москва");
-        $x("//input[@type='tel']").doubleClick().sendKeys("DELETE");
-        String meetingDate = LocalDate.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
-        $x("//input[@placeholder= 'Дата встречи']").val(meetingDate);
+        $("[data-test-id=date] input").sendKeys(formatter.format(newDate));
         $("[data-test-id='name'] input").val("");
         $("[data-test-id='phone'] input").val("+79409999806");
         $("[data-test-id='agreement']").click();
@@ -140,9 +129,7 @@ public class DeliveryCardTest {
     @Test
     public void shouldPhoneNumberIsNotFilled() {
         $$x("//input[@placeholder='Город']").filter(visible).first().val("Москва");
-        $x("//input[@type='tel']").doubleClick().sendKeys("DELETE");
-        String meetingDate = LocalDate.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
-        $x("//input[@placeholder='Дата встречи']").val(meetingDate);
+        $("[data-test-id=date] input").sendKeys(formatter.format(newDate));
         $("[data-test-id='name'] input").val("Андреева Анна");
         $("[data-test-id='phone'] input").val("");
         $("[data-test-id='agreement']").click();
@@ -152,25 +139,22 @@ public class DeliveryCardTest {
     @Test
     public void shouldInsertingZerosInDate(){
         $$x("//input[@placeholder='Город']").filter(visible).first().val("Москва");
-        $x("//input[@type='tel']").doubleClick().sendKeys("DELETE");
-        $x("//input[@placeholder='Дата встречи']").val("00.00.0000");
+        $("[data-test-id=date] input").doubleClick().sendKeys("00.00.0000");
         $("[data-test-id='name'] input").val("Андреева Анна");
         $("[data-test-id='phone'] input").val("+79409999806");
         $("[data-test-id='agreement']").click();
         $x("//*[contains(text(),'Забронировать')]").click();
         $("[data-test-id='date'] .input__sub").should(exactText("Неверно введена дата"));
     }
-    @Test
+    /*@Test
     public void shouldEnteringZerosInThePhoneNumber(){
         $$x("//input[@placeholder='Город']").filter(visible).first().val("Москва");
-        $x("//input[@type='tel']").doubleClick().sendKeys("DELETE");
-        String meetingDate = LocalDate.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
-        $x("//input[@placeholder='Дата встречи']").val(meetingDate);
+        $("[data-test-id=date] input").sendKeys(formatter.format(newDate));
         $("[data-test-id='name'] input").val("Андреева Анна");
         $("[data-test-id='phone'] input").val("+00000000000");
         $("[data-test-id ='agreement']").click();
         $x("//*[contains(text(),'Забронировать')]").click();
         $("[data-test-id ='notification']").shouldBe(visible, Duration.ofSeconds(15));
-        $("[data-test-id=notification] .notification__content").should(exactText("Встреча успешно забронирована на " + meetingDate));
-    }
+        $("[data-test-id='phone'] .input__sub").should(exactText("Телефон указан неверно. Должно быть 11 цифр, например, +79012345678."));
+    }*/
 }
